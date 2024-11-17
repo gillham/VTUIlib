@@ -1,7 +1,7 @@
 !cpu w65c02
 ; Program counter is set to 0 to make it easier to calculate the addresses
 ; in the jumptable as all that needs to be done is add the actual offset.
-*=$0000
+*=$f100
 
 ; ******************************* Jumptable ***********************************
 INIT:	bra	initialize	; No inputs
@@ -120,62 +120,62 @@ r12h	= r12+1
 ;		r0, r1, r2 & r3 (ZP addresses $02-$09)
 ; *****************************************************************************
 initialize:
-@base	= r0
-@ptr	= r1
-	; Write code to ZP to figure out where the library is loaded.
-	; This is done by jsr'ing to the code in ZP which in turn reads the
-	; return address from the stack.
-	lda	#OP_PLA
-	sta	r0
-	lda	#OP_PLY
-	sta	r0+1
-	lda	#OP_PHY
-	sta	r0+2
-	lda	#OP_PHA
-	sta	r0+3
-	lda	#OP_RTS
-	sta	r0+4
-	; Jump to the code in ZP that was just copied there by the code above.
-	; This is to get the return address stored on stack
-	jsr	r0		; Get current PC value
-	sec
-	sbc	#*-2		; Calculate start of our program
-	sta	@base		; And store it in @base
-	tya
-	sbc	#$00
-	sta	@base+1
-	lda	@base		; Calculate location of first address in
-	clc			; jump table
-	adc	#$03
-	sta	@ptr
-	lda	@base+1
-	adc	#$00
-	sta	@ptr+1
-
-	ldy	#1		; .Y used for indexing high byte of pointers
-	lda	(@ptr),y
-	beq	@loop		; If high byte of pointer is 0, we can continue
-	rts			; Otherwise initialization has already been run
-
-@loop:	lda	(@ptr)		; Check if lowbyte of address is 0
-	bne	+		; If not, we have not reached end of jumptable
-	lda	(@ptr),y	; Check if highbyte of address is 0
-	beq	@end		; If it is, we have reaced end of jumptable
-+	clc
-	lda	(@ptr)		; Low part of jumptable address
-	adc	@base		; Add start address of our program to the jumptable address
-	sta	(@ptr)
-	lda	(@ptr),y
-	adc	@base+1
-	sta	(@ptr),y
-
-	lda	@ptr
-	clc
-	adc	#$03
-	sta	@ptr
-	bcc	@loop
-	inc	@ptr+1
-	bra	@loop
+;@base	= r0
+;@ptr	= r1
+;	; Write code to ZP to figure out where the library is loaded.
+;	; This is done by jsr'ing to the code in ZP which in turn reads the
+;	; return address from the stack.
+;	lda	#OP_PLA
+;	sta	r0
+;	lda	#OP_PLY
+;	sta	r0+1
+;	lda	#OP_PHY
+;	sta	r0+2
+;	lda	#OP_PHA
+;	sta	r0+3
+;	lda	#OP_RTS
+;	sta	r0+4
+;	; Jump to the code in ZP that was just copied there by the code above.
+;	; This is to get the return address stored on stack
+;	jsr	r0		; Get current PC value
+;	sec
+;	sbc	#*-2		; Calculate start of our program
+;	sta	@base		; And store it in @base
+;	tya
+;	sbc	#$00
+;	sta	@base+1
+;	lda	@base		; Calculate location of first address in
+;	clc			; jump table
+;	adc	#$03
+;	sta	@ptr
+;	lda	@base+1
+;	adc	#$00
+;	sta	@ptr+1
+;
+;	ldy	#1		; .Y used for indexing high byte of pointers
+;	lda	(@ptr),y
+;	beq	@loop		; If high byte of pointer is 0, we can continue
+;	rts			; Otherwise initialization has already been run
+;
+;@loop:	lda	(@ptr)		; Check if lowbyte of address is 0
+;	bne	+		; If not, we have not reached end of jumptable
+;	lda	(@ptr),y	; Check if highbyte of address is 0
+;	beq	@end		; If it is, we have reaced end of jumptable
+;+	clc
+;	lda	(@ptr)		; Low part of jumptable address
+;	adc	@base		; Add start address of our program to the jumptable address
+;	sta	(@ptr)
+;	lda	(@ptr),y
+;	adc	@base+1
+;	sta	(@ptr),y
+;
+;	lda	@ptr
+;	clc
+;	adc	#$03
+;	sta	@ptr
+;	bcc	@loop
+;	inc	@ptr+1
+;	bra	@loop
 @end:	rts
 
 ; *****************************************************************************
